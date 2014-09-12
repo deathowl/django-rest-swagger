@@ -18,7 +18,8 @@ This application was developed and tested on:
 * Django REST Framework 2.3.8+
 * Python 2/3
 
-Backwards compatibility for earlier Django & Django REST Framework versions will be added in a future release. Meanwhile, please use [Django REST Framework Docs](https://github.com/marcgibbons/django-rest-framework-docs) to document your projects.
+Backwards compatibility for earlier Django & Django REST Framework versions will be added in a future 
+release. Meanwhile, please use [Django REST Framework Docs](https://github.com/marcgibbons/django-rest-framework-docs) to document your projects.
 
 ## Quick start
 **Note: This application will not work with Django REST Framework < 2.3**
@@ -44,7 +45,8 @@ Backwards compatibility for earlier Django & Django REST Framework versions will
 ## Configuration
 Further configuration can optionally be made from your project's `settings.py`.
 
-* **Exclude namespaces:** you may wish to exclude a set of URLs from documentation. By default, all views that are subclassed from Django REST Framework APIView will be included for documentation
+* **Exclude namespaces:** you may wish to exclude a set of URLs from documentation. By default, 
+all views that are subclassed from Django REST Framework APIView will be included for documentation
 * **API Version:** your API's version. Default is blank.
 * **Enabled methods:** You may specify the methods that can be interacted with in the UI
 * **API key:** you can specify a key for your API. Default is blank
@@ -68,7 +70,10 @@ SWAGGER_SETTINGS = {
 ```
 
 ## How It Works
-This project is built on the [Django REST Framework Docs](https://github.com/marcgibbons/django-rest-framework-docs) and uses the lovely [Swagger from Wordnik](https://developers.helloreverb.com/swagger/) as an interface. This application introspectively generates documentation based on your Django REST Framework API code. Comments are generated in combination from code analysis and comment extraction. Here are some of the features that are documented:
+This project is built on the [Django REST Framework Docs](https://github.com/marcgibbons/django-rest-framework-docs) and uses 
+the lovely [Swagger from Wordnik](https://developers.helloreverb.com/swagger/) as an interface. 
+This application introspectively generates documentation based on your Django REST Framework API code. Comments are 
+generated in combination from code analysis and comment extraction. Here are some of the features that are documented:
 
 * API title - taken from the class name
 * Methods allowed
@@ -84,13 +89,30 @@ This project is built on the [Django REST Framework Docs](https://github.com/mar
     class Countries(APIView):
         """
         This text is the description for this API
+        
         param1 -- A first parameter
         param2 -- A second parameter
         """
 ```
 
+This can even be extended to define parameter types and their submit methods. 
+The default for all parameters is submit method `query` and parameter type `string`.
+Its also possible to use markdown for the docstring.
+
+```python
+    class Countries(APIView):
+        """
+        This text is the description for this API
+        
+        GET: param1 -- A first parameter (string)
+        POST: param2 -- A second parameter (integer)
+        HEADER: Authorization -- "Token <auth_token>"
+        """
+```
+
 ## Example
-Included in this repository is a functioning example. Please clone the repo, copy or reference the `rest_framework_swagger` directory into the cigar_example folder. Install the required packages using `pip install -r requirements.txt`
+Included in this repository is a functioning example. Please clone the repo, copy or reference the `rest_framework_swagger` 
+directory into the cigar_example folder. Install the required packages using `pip install -r requirements.txt`
 
 ## Screenshots
 ![](screenshots/api-list.png)

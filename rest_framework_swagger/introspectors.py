@@ -1,9 +1,11 @@
+# coding=utf-8
 """Handles the instrospection of REST Framework Views and ViewSets."""
 from abc import ABCMeta, abstractmethod
 import re
 
 from django.contrib.admindocs.utils import trim_docstring
-
+from django.utils.html import escape
+import markdown
 from rest_framework.views import get_view_name, get_view_description
 
 
@@ -20,8 +22,7 @@ class IntrospectorHelper(object):
     @staticmethod
     def strip_params_from_docstring(docstring):
         """
-        Strips the params from the docstring (ie. myparam -- Some param) will
-        not be removed from the text body
+        Strips the params from the docstring (ie. myparam -- Some param)
         """
         split_lines = trim_docstring(docstring).split('\n')
 
@@ -34,7 +35,7 @@ class IntrospectorHelper(object):
         if cut_off is not None:
             split_lines = split_lines[0:cut_off]
 
-        return "<br/>".join(split_lines)
+        return u'\n'.join(split_lines)
 
     @staticmethod
     def get_serializer_name(serializer):
@@ -42,7 +43,6 @@ class IntrospectorHelper(object):
             return None
 
         return serializer.__name__
-
 
     @staticmethod
     def get_view_description(callback):
@@ -113,15 +113,15 @@ class BaseMethodIntrospector(object):
         docstring = ""
 
         class_docs = trim_docstring(get_view_description(self.callback))
-        method_docs = self.get_docs()
+        method_docs = trim_docstring(self.get_docs())
 
         if class_docs is not None:
             docstring += class_docs
         if method_docs is not None:
-            docstring += '\n' + method_docs
+            docstring += '\n\n' + method_docs
 
         docstring = IntrospectorHelper.strip_params_from_docstring(docstring)
-        docstring = docstring.replace("\n\n", "<br/>")
+        docstring = markdown.markdown(escape(docstring))
 
         return docstring
 
@@ -255,21 +255,31 @@ class BaseMethodIntrospector(object):
         for line in split_lines:
             param = line.split(' -- ')
             if len(param) == 2:
-                paramtype = 'query'
-                match = re.match(r"\((P|B|F|Q)\).*", param[0].strip())
+
+                param_name = param[0].strip()
+                param_description = param[1].strip()
+                param_type = 'query'
+                param_types = {
+                    'GET': 'query',
+                    'POST': 'form',
+                    'HEADER': 'header',
+                }
+                data_type = 'string'
+
+                match = re.search(r'^(GET|POST|HEADER):(.*)', param_name)
                 if match:
-                    annotated = match.group(1)
-                    param[0] = re.sub(r"\((P|B|F|Q)\)", "", param[0].strip())
-                    if annotated == "P":
-                        paramtype = "path"
-                    elif annotated == "B":
-                        paramtype = "body"
-                    elif annotated == "F":
-                        paramtype = "form"
-                params.append({'paramType': paramtype,
-                               'name': param[0].strip(),
-                               'description': param[1].strip(),
-                               'dataType': ''})
+                    param_type = param_types.get(match.group(1))
+                    param_name = match.group(2).strip()
+
+                match = re.search(r'(.*)\((.*)\)', param_description)
+                if match:
+                    param_description = match.group(1).strip()
+                    data_type = match.group(2)
+
+                params.append({'paramType': escape(param_type),
+                               'name': escape(param_name),
+                               'description': escape(param_description),
+                               'dataType': escape(data_type)})
 
         return params
 
@@ -325,4 +335,3 @@ class ViewSetMethodIntrospector(BaseMethodIntrospector):
         will be used
         """
         return self.retrieve_docstring()
-
